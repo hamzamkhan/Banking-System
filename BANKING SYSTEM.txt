@@ -1,0 +1,999 @@
+Include Irvine32.inc
+Include macros.inc
+;-------------------------------------BANK MANAGEMENT SYSTEM-------------------------------------;
+
+;-----------------------------------------------;
+
+;Team Members :
+;HAMZA MUSTAFA KHAN (Leader) 15K-2832 - GR2
+;AMMAR GHAZALI 15K-2804 - GR1
+;INSEYA BATOOL 15K-2265 - GR1
+;MUHAMMAD UMAR MOIN 15K-2802 - GR2
+
+;-----------------------------------------------;
+
+;-----------------------DATA SEGMENT-----------------------;
+
+
+BUFFER_SIZE = 500000
+.data
+msg1 BYTE " Enter Your Desired Account Number For Creation :  ",0
+msg2 BYTE " Your Account number is ",0
+var1 DWORD ?
+
+accountarray BYTE 500 DUP(?)
+account byte 50 DUP(?)
+acsize DWORD($-account)
+account2 db 500 DUP(?)
+account3 db 500 DUP(?)
+acsize3 DWORD($-account3)
+daccount db 500 DUP(?)
+daccount2 db 500 DUP(?)
+balance DWORD 500 DUP(?)
+NameArray DWORD 500 DUP(?)
+namestring BYTE 50 DUP(?)
+namesize DWORD ($-namestring)
+addressstring BYTE 50 DUP (?)
+asize DWORD($-addressstring)
+pno byte 50 DUP(?)
+psize DWORD($-pno)
+cnic byte 50 DUP (?) 
+cnsize DWORD ($-cnic)
+numsize DWORD 0
+pnosize DWORD 0 
+bytesWritten DWORD ? 
+stringlength DWORD ?
+bal DWORD ?
+fbal DWORD 500
+
+bstring byte 50 DUP(?)
+bssize DWORD ($-bstring)
+
+welstring byte "					BAKER STREET BANK LTD.",0
+welcr byte "CREATION MENU",0
+weldep byte "DEPOSITION MENU",0
+welwd byte "WITHDRAWAL MENU",0
+wele byte "ENQUIRY MENU",0
+
+prompt byte "Enter Choice : ",0
+prompt1 byte "1.Creation.",0
+prompt2 byte "2.Deposition.",0
+prompt3 byte "3.Withdrawal.",0
+prompt4 byte "4.Account Enquiry.",0
+prompt5 byte "Choose Your Desired Procedure.",0
+
+string1 byte "					DEPOSIT MENU",0
+string2 byte "Enter Account Number : ",0
+string3 byte "Account Number : ",0
+string4 byte "Amount Deposited.",0
+string5 byte "Account Not Found!",0
+string6 byte "Do You Want To Perform Again? ( 1-YES | 0-NO )",0
+string7 byte "Enter Amount To Deposit : ",0
+string8 byte "Enter Cash To Withdrawl: ",0
+string9 byte "Remaining Balance After Deduction Of 2.5% Of Tax Is: ",0
+string10 byte "Balance Is Insufficient To WithDraw. ",0
+
+info1 byte "Enter Name : ",0
+info2 byte "Enter Mobile Number : ",0
+info3 byte "Enter CNIC Number : ",0
+info4 byte "Enter Residential Address : ",0
+
+invalid1 byte "INVALID MOBILE NUMBER, ENTER AGAIN.",0
+invalid2 byte "INVALID CNIC NUMBER, ENTER AGAIN.",0
+invalid3 byte "INVALID CHOICE, ENTER AGAIN.",0
+invalid4 byte "Minimum Amount = Rs. 500, Enter Again.",0
+invalid5 byte "Minimum Amount = Rs. 1000, Enter Again.",0
+invalid6 byte "Invalid accout number",0
+invalid7 byte "Account Number Should Be Of 8 Digits. Enter Again.",0
+
+errmsg byte "Cannot Open File.",0
+
+DepMenu byte "Choose Your Category : ",0
+DepMenu1 byte "Current.",0
+DepMenu2 byte "Fixed Deposit.",0
+DepMenu3 byte "Saving.",0
+DepMenu4 byte "Enter Your Choice : ",0
+
+tax1 dword 2
+tax2 dword 100
+estringinput byte BUFFER_SIZE DUP(?)
+estring byte "Enter Your Account Number : ",0
+
+count DWORD 0
+count1 byte 0
+count2 byte 0
+choice byte ?
+dchoice dword ? 
+fileHandle HANDLE ?
+
+finfo1 byte "Name: ",0dh,0ah
+fsize1 DWORD ($-finfo1)
+finfo2 byte "Address:",0dh,0ah
+fsize2 DWORD ($-finfo2)
+finfo3 byte "CNIC : ",0dh,0ah
+fsize3 DWORD ($-finfo3)
+finfo4 byte "Account Number:",0dh,0ah
+fsize4 DWORD ($-finfo4)
+finfo5 byte "Mobile Number:",0dh,0ah
+fsize5 DWORD ($-finfo5)
+finfo6 byte "Balance:",0dh,0ah
+fsize6 DWORD ($-finfo6)
+
+constring db ".txt",0
+amstring db "bal",0
+
+Wnumb DWORD ?
+Wcash DWORD ?
+dastring byte "Amount(In Rupees) : ",0dh,0ah
+dasize DWORD ($-dastring)
+nextline byte " ",0dh,0ah
+nextsize DWORD ($-nextline)
+;------------------------------CODE SEGEMENT-----------------------------;
+.code
+main PROC
+mov eax,blue+(white*16)
+call settextcolor
+call clrscr
+call crlf
+mov edx,offset welstring
+call writestring
+
+call crlf
+call crlf
+START:
+mov edx,offset prompt5
+call writestring
+call crlf
+call crlf
+mov edx,offset prompt1
+call writestring
+call crlf
+mov edx,offset prompt2
+call writestring
+call crlf
+mov edx,offset prompt3
+call writestring
+call crlf
+mov edx,offset prompt4
+call writestring
+call crlf
+mov edx,offset prompt
+call writestring
+
+START2:
+mov eax,0
+call readint
+cmp eax,2 
+je D
+cmp eax,3
+je W
+cmp eax,4
+je E
+cmp eax,1
+je Cr
+call crlf
+mov edx,offset invalid3
+call writestring
+call crlf
+jmp START2
+
+D:
+call DEPOSIT
+jmp o
+Cr:
+call CREATION
+jmp o
+W:
+Call WITHDRAWL
+jmp o
+E:
+call ENQUIRY
+jmp o
+o:
+call crlf
+call crlf
+mov eax,0
+mov edx,offset string6 
+call writestring
+call crlf
+call readint
+cmp eax,0
+je EPROG
+call clrscr
+jmp START
+EPROG:
+exit
+main ENDP
+
+;------------------------DEPOSITION MENU----------------------------;
+
+
+DEPOSIT PROC
+call clrscr
+
+mov esi,0
+mov edi,0
+mov edx,offset weldep
+call writestring
+call crlf
+call crlf
+mov edx,offset DepMenu
+call writestring
+call crlf
+call crlf
+mov edx,offset DepMenu1
+call writestring
+call crlf
+mov edx,offset DepMenu2
+call writestring
+call crlf
+mov edx,offset DepMenu3
+call writestring
+call crlf
+mov edx,offset DepMenu4
+call writestring
+call crlf
+
+CHC:
+mov eax,0
+call readint
+mov dchoice,eax
+cmp dchoice,0
+jg NEXTCH
+mov edx,offset invalid3
+call writestring
+jmp CHC
+NEXTCH:
+cmp dchoice,4
+jl Eaccount3
+mov edx,offset invalid3
+call writestring
+call crlf
+jg CHC
+
+Eaccount3:
+call crlf
+mov eax,0
+mov edx,offset string2
+call writestring
+
+mov edx,offset daccount   			
+mov ecx,lengthof daccount
+call readstring
+
+cmp eax,8
+je CCONTINUE
+mov edx,offset invalid7
+call writestring
+call crlf
+jmp Eaccount3
+
+CCONTINUE:
+cld
+
+mov esi,offset daccount
+mov edi,offset daccount2
+mov ecx,lengthof daccount
+rep movsb
+
+mov esi,0
+mov edi,0
+mov esi,offset constring
+mov edi,offset daccount
+cld
+add edi,8
+mov ecx,lengthof constring
+rep movsb
+
+INVOKE CreateFile,
+   ADDR daccount, GENERIC_WRITE, DO_NOT_SHARE, NULL,
+   Open_Existing, FILE_ATTRIBUTE_NORMAL, 0
+   mov filehandle,eax
+
+   cmp eax,INVALID_HANDLE_VALUE
+   je NFOUND
+   INVOKE Closehandle,Filehandle
+   jmp NextCheck
+
+
+NextCheck:
+mov esi,0
+mov edi,0
+mov esi,offset amstring
+mov edi,offset daccount2
+cld
+add edi,8
+mov ecx,lengthof amstring
+rep movsb
+
+mov esi,0
+mov edi,0
+mov esi,offset constring
+mov edi,offset daccount2
+cld
+add edi,11
+mov ecx,lengthof constring
+rep movsb
+call crlf
+
+FDEP:
+
+cmp dchoice,1
+je DCURRENT
+cmp dchoice,2
+je DFIXED
+cmp dchoice,3
+je DSAVING
+
+;-----CURRENT DEPOSITION-----;
+DCURRENT:
+mov edi,0
+call crlf
+mov edx,offset string7
+call writestring
+mov eax,0
+call readint
+cmp eax,500
+jl DAGAIN1
+jmp CONTD3
+DAGAIN1:
+mov edx,offset invalid4
+call writestring
+jmp DCURRENT
+
+CONTD3:
+mov balance[edi*type balance],eax
+mov bal,eax
+mov edx,offset string4
+call writestring
+call crlf
+jmp depcreate
+
+;---FIXED DEPOSITION---;
+DFIXED:
+mov edi,0
+call crlf
+mov edx,offset string7
+call writestring
+mov eax,0
+call readint
+cmp eax,1000
+jl DAGAIN2
+jmp CONTD4
+DAGAIN2:
+mov edx,offset invalid5
+call writestring
+jmp DFIXED
+
+CONTD4:
+mov balance[edi*type balance],eax
+mov bal,eax
+mov edx,offset string4
+call writestring
+call crlf
+jmp depcreate
+DSAVING:
+mov edi,0
+mov esi,0
+mov edx,offset string7
+call writestring
+mov eax,0
+call readint
+mov balance[edi*type balance],eax
+mov bal,eax
+mov edx,offset string4
+call writestring
+call crlf
+
+
+depcreate:
+
+call INT2STRING
+
+INVOKE CreateFile,
+   ADDR daccount2, GENERIC_WRITE, DO_NOT_SHARE, NULL,
+   CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0
+   mov filehandle,eax
+
+   cmp eax,INVALID_HANDLE_VALUE
+   je NFOUND
+
+ INVOKE WriteFile,  ; write text to file
+     fileHandle,  ; file handle
+     ADDR dastring,  ; buffer pointer
+     dasize,   ; number of bytes to write
+     ADDR bytesWritten, ; number of bytes written
+     0    ; overlapped execution flag
+  
+ ; Move the file pointer to the end of the file
+ INVOKE SetFilePointer,
+   fileHandle,0,0,FILE_END
+ ; Append text to the file
+ INVOKE WriteFile,
+     fileHandle, ADDR bstring, bssize,    
+     ADDR bytesWritten, 0
+
+  INVOKE Closehandle,Filehandle
+
+jmp outd
+NFOUND:
+mov edx,offset string5
+call writestring
+call crlf
+jmp outd
+
+outd:
+RET
+DEPOSIT ENDP
+
+
+;----------------------------CREATION MENU--------------------------------------;
+
+
+CREATION proc
+call clrscr
+mov esi,0
+mov ecx,0
+mov edx,offset welcr
+call writestring
+call crlf
+call crlf
+
+Eaccount:
+call crlf
+mov edx,offset msg1
+call writestring
+
+mov edx,offset account
+mov ecx,lengthof account
+call readstring
+mov stringlength,eax
+
+cmp eax,8
+je PCONTINUE
+mov edx,offset invalid7
+call writestring
+call crlf
+jmp Eaccount
+
+PCONTINUE:
+cld
+
+mov esi,offset account
+mov edi,offset accountarray
+mov ecx,lengthof account
+rep movsb
+
+mov edx,offset msg2
+call writestring
+
+mov edx,offset account
+call writestring
+call crlf
+
+mov esi,0
+mov ecx,lengthof account
+
+Lcopy2:
+mov eax,0
+mov al,account[esi*type account]
+mov account2[esi*type account2],al
+inc esi
+Loop Lcopy2
+
+mov esi,offset constring
+mov edi,offset account2
+add edi,8
+mov ecx,lengthof constring
+rep movsb
+
+mov eax,0
+mov eax,stringlength
+mov account[eax],'.'
+mov eax,0
+
+call crlf
+call crlf
+
+
+
+mov edx,offset info1
+call writestring
+mov edx,offset namestring
+mov ecx,lengthof namestring
+call readstring
+mov namestring[eax],'.'
+call crlf
+
+
+ 
+
+mov edx,offset info2
+call writestring
+
+mov eax,0
+mov edx,offset pno 
+mov ecx,lengthof pno
+call readstring
+mov pno[eax],'.'
+
+mov pnosize,eax
+
+cmp eax,11
+JG MOBNUMBER 
+JMP CONTD1
+
+MOBNUMBER: 
+call crlf
+mov eax,0
+mov edx,offset invalid1
+call writestring
+mov edx,offset pno 
+mov ecx,lengthof pno
+call readstring
+mov pno[eax],'.'
+mov pnosize,eax
+cmp eax,11
+JG MOBNUMBER
+JMP CONTD1
+
+CONTD1:
+mov eax,0
+call crlf
+mov edx,offset info3
+call writestring
+mov edx,offset cnic
+mov ecx,lengthof cnic
+call readstring
+mov cnic[eax],'.'
+mov numsize,eax
+cmp eax,15
+jne CNICNUMBER
+JMP CONTD2
+
+
+CNICNUMBER: 
+mov eax,0
+call crlf
+mov edx,offset invalid2
+call writestring
+mov edx,offset CNIC
+mov ecx,lengthof CNIC
+call readstring
+mov cnic[eax],'.'
+mov numsize,eax
+cmp eax,15
+jG CNICNUMBER
+JMP CONTD2
+
+CONTD2: 
+call crlf
+mov edx,offset info4
+call writestring
+mov edx,offset addressstring
+mov ecx,lengthof addressstring
+call readstring
+mov addressstring[eax],'.'
+call crlf
+
+
+;-----------file creation----------;
+
+
+mov eax,0
+
+INVOKE CreateFile,
+   ADDR account2, GENERIC_WRITE, DO_NOT_SHARE, NULL,
+   CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0
+
+ mov fileHandle,eax  
+
+ .IF eax == INVALID_HANDLE_VALUE
+   mov  edx,OFFSET errMsg  ; Display error message
+   call WriteString
+   jmp  outcr
+ .ENDIF
+
+ INVOKE WriteFile,  ; write text to file
+     fileHandle,  ; file handle
+     ADDR finfo4,  ; buffer pointer
+     fsize4,   ; number of bytes to write
+     ADDR bytesWritten, ; number of bytes written
+     0    ; overlapped execution flag
+  
+ ; Move the file pointer to the end of the file
+ INVOKE SetFilePointer,
+   fileHandle,0,0,FILE_END
+ ; Append text to the file
+ INVOKE WriteFile,
+     fileHandle, ADDR account, acsize,    
+     ADDR bytesWritten, 0
+     
+ INVOKE SetFilePointer,     
+   fileHandle,0,0,FILE_END
+ ; Append text to the file
+ INVOKE WriteFile,
+     fileHandle, ADDR nextline, nextsize,
+     ADDR bytesWritten, 0
+
+
+ INVOKE SetFilePointer,     
+   fileHandle,0,0,FILE_END
+ ; Append text to the file
+ INVOKE WriteFile,
+     fileHandle, ADDR finfo1, fsize1,
+     ADDR bytesWritten, 0
+  
+  INVOKE SetFilePointer,     
+   fileHandle,0,0,FILE_END
+ ; Append text to the file
+ INVOKE WriteFile,
+     fileHandle, ADDR namestring, namesize,
+     ADDR bytesWritten, 0
+ 
+   
+ 
+ INVOKE SetFilePointer,     
+   fileHandle,0,0,FILE_END
+ ; Append text to the file
+ INVOKE WriteFile,
+     fileHandle, ADDR nextline, nextsize,
+     ADDR bytesWritten, 0
+
+
+ INVOKE SetFilePointer,
+   fileHandle,0,0,FILE_END
+ ; Append text to the file
+ INVOKE WriteFile,
+     fileHandle, ADDR finfo2, fsize2,
+     ADDR bytesWritten, 0
+
+ INVOKE SetFilePointer,        ;address
+   fileHandle,0,0,FILE_END
+ ; Append text to the file
+ INVOKE WriteFile,
+     fileHandle, ADDR addressstring, asize,
+     ADDR bytesWritten, 0
+ 
+ 
+ INVOKE SetFilePointer,     
+   fileHandle,0,0,FILE_END
+ ; Append text to the file
+ INVOKE WriteFile,
+     fileHandle, ADDR nextline, nextsize,
+     ADDR bytesWritten, 0
+
+ INVOKE SetFilePointer,
+   fileHandle,0,0,FILE_END
+ ; Append text to the file
+ INVOKE WriteFile,         ;CNIC
+     fileHandle, ADDR finfo3, fsize3,
+     ADDR bytesWritten, 0
+
+ INVOKE SetFilePointer,
+   fileHandle,0,0,FILE_END
+ ; Append text to the file
+ INVOKE WriteFile,
+     fileHandle, ADDR cnic, cnsize,
+     ADDR bytesWritten, 0
+  
+ INVOKE SetFilePointer,     
+   fileHandle,0,0,FILE_END
+ ; Append text to the file
+ INVOKE WriteFile,
+     fileHandle, ADDR nextline, nextsize,
+     ADDR bytesWritten, 0
+
+ INVOKE SetFilePointer,      
+   fileHandle,0,0,FILE_END
+ ; Append text to the file       ;ACCOUNT NUMBER
+ INVOKE WriteFile,
+     fileHandle, ADDR finfo4, fsize4,
+     ADDR bytesWritten, 0
+
+ INVOKE SetFilePointer,      
+   fileHandle,0,0,FILE_END
+ ; Append text to the file
+ INVOKE WriteFile,
+     fileHandle, ADDR account, acsize,
+     ADDR bytesWritten, 0
+  
+ INVOKE SetFilePointer,     
+   fileHandle,0,0,FILE_END
+ ; Append text to the file
+ INVOKE WriteFile,
+     fileHandle, ADDR nextline, nextsize,
+     ADDR bytesWritten, 0
+  
+   INVOKE SetFilePointer,      ;MOBILE NUMBER
+   fileHandle,0,0,FILE_END
+ ; Append text to the file
+ INVOKE WriteFile,
+     fileHandle, ADDR finfo5, fsize5,
+	 ADDR bytesWritten, 0
+
+ INVOKE SetFilePointer,      
+ fileHandle,0,0,FILE_END
+ ;Append text to the file
+ INVOKE WriteFile,
+     fileHandle, ADDR pno, psize,
+     ADDR bytesWritten, 0
+
+ INVOKE CloseHandle, fileHandle
+
+outcr:
+RET
+CREATION endp
+
+;-------------------------------WITHDRAWAL MENU------------------------------------;
+WITHDRAWL proc
+call clrscr
+mov edx,offset welwd
+call writestring
+
+
+Eaccount2:
+call crlf
+mov edx,offset string2
+call writestring
+
+
+mov eax,0
+mov edx,offset account3
+mov ecx,lengthof account3
+call readstring
+
+cmp eax,8
+je WCONTINUE
+mov edx,offset invalid7
+call writestring
+call crlf
+jmp Eaccount2
+
+WCONTINUE:
+mov esi,offset account3
+mov edi,offset accountarray
+
+cld 
+
+mov ecx,lengthof account3
+repe cmpsb
+je WithDr
+
+mov edx,offset invalid6
+call writestring
+jmp gameover
+
+WithDr:
+mov esi,0
+mov edx, offset string8
+call writestring
+mov eax,0
+call readint
+mov Wcash,eax
+cmp Balance[esi*type balance],eax
+JA L1
+mov edx,offset string10
+call writestring
+
+jmp gameover
+
+L1:
+mov eax,balance[esi*type balance]
+sub eax,wcash
+mov balance[esi*type balance],eax
+mov eax,balance[esi*type balance]
+mov edx,0
+mul tax1
+mov ebx,tax2
+div ebx
+mov eax,edx
+call crlf
+mov ebx,balance[esi*type balance]
+sub ebx,eax
+mov eax,ebx
+mov bal,eax
+
+mov edx,offset string9
+call writestring
+call writedec ; remaining balance.
+call crlf
+
+mov esi,0
+mov edi,0
+mov esi,offset amstring
+mov edi,offset account3
+cld
+add edi,8
+mov ecx,lengthof amstring
+rep movsb
+
+call INT2STRING
+
+mov esi,0
+mov edi,0
+mov esi,offset constring
+mov edi,offset account3
+cld
+add edi,11
+mov ecx,lengthof constring
+rep movsb
+
+INVOKE CreateFile,
+   ADDR account3, GENERIC_WRITE, DO_NOT_SHARE, NULL,
+   CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0
+   mov filehandle,eax
+
+   cmp eax,INVALID_HANDLE_VALUE
+   je gameover
+
+ INVOKE WriteFile,  ; write text to file
+     fileHandle,  ; file handle
+     ADDR dastring,  ; buffer pointer
+     dasize,   ; number of bytes to write
+     ADDR bytesWritten, ; number of bytes written
+     0    ; overlapped execution flag
+  
+ ; Move the file pointer to the end of the file
+ INVOKE SetFilePointer,
+   fileHandle,0,0,FILE_END
+ ; Append text to the file
+ INVOKE WriteFile,
+     fileHandle, ADDR bstring, bssize,    
+     ADDR bytesWritten, 0
+
+  INVOKE Closehandle,Filehandle
+
+gameover:
+RET
+WITHDRAWL endp
+;---------------------------------ENQUIRY MENU------------------------------;
+
+ENQUIRY PROC 
+call clrscr
+mov edx,offset wele
+call writestring
+call crlf
+call crlf
+
+Eaccount2:
+mov edx,offset estring
+call writestring
+mov edx,offset account2
+mov ecx,lengthof account2 
+call readstring
+mov stringlength,eax
+
+cmp eax,8
+je PCONTINUE2
+mov edx,offset invalid7
+call writestring
+call crlf
+jmp Eaccount2
+
+PCONTINUE2:
+mov esi,0
+mov edi,0
+mov esi,offset amstring
+mov edi,offset account2
+cld
+add edi,8
+mov ecx,lengthof amstring
+rep movsb
+
+mov esi,0
+mov edi,0
+mov esi,offset constring
+mov edi,offset account2
+cld
+add edi,11
+mov ecx,lengthof constring
+rep movsb
+
+
+mov edx,offset account2
+call openinputfile
+mov filehandle,eax
+cmp eax,INVALID_HANDLE_VALUE
+jne disp
+mov edx,offset errmsg
+call writestring
+jmp enquiryout
+
+disp:
+mov edx,offset estringinput
+mov ecx,BUFFER_SIZE
+call readfromfile
+mov stringlength,eax
+call crlf
+call crlf
+mov edx,offset estringinput
+call writestring
+call crlf
+mov eax,bal
+cmp eax,fbal
+jl CLOSEF
+mov edx,offset bal
+call writedec
+call crlf
+
+CLOSEF:
+call closefile
+enquiryout:
+RET
+ENQUIRY ENDP
+
+
+INT2STRING PROC
+
+push bal
+push offset bstring
+
+call writeval
+mov esi,0
+mov edi,0
+
+mov eax,0
+
+mov	 ecx,count
+
+Lin1:	
+movzx eax,bstring[esi]	
+push eax
+inc	 esi
+loop Lin1
+
+mov	 ecx,count
+mov	 esi,0
+Lin2:	
+pop  eax
+mov	 bstring[esi],al
+inc	 esi
+loop Lin2
+call crlf
+call crlf
+
+
+call crlf
+
+Ret 
+INT2STRING endp
+
+writeVal PROC	
+
+push  ebp 
+mov ebp, esp    
+
+mov esi,0
+mov edi,0
+mov edi, [ebp + 8]
+
+cld
+
+
+mov eax, [ebp + 12] 
+
+convertInt:
+mov ebx, 10
+cdq
+div ebx
+inc count
+add edx, 48 
+push  eax
+mov eax, edx
+
+stosb
+pop eax          
+
+cmp eax, 0
+je  finished
+jmp convertInt      ; else, repeat
+
+finished:
+
+pop ebp
+ret 8
+writeVal ENDP 
+
+
+END main
