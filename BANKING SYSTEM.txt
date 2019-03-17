@@ -2,15 +2,6 @@ Include Irvine32.inc
 Include macros.inc
 ;-------------------------------------BANK MANAGEMENT SYSTEM-------------------------------------;
 
-;-----------------------------------------------;
-
-;Team Members :
-;HAMZA MUSTAFA KHAN (Leader) 15K-2832 - GR2
-;AMMAR GHAZALI 15K-2804 - GR1
-;INSEYA BATOOL 15K-2265 - GR1
-;MUHAMMAD UMAR MOIN 15K-2802 - GR2
-
-;-----------------------------------------------;
 
 ;-----------------------DATA SEGMENT-----------------------;
 
